@@ -24,13 +24,19 @@ class WorldMap extends Component {
     constructor(){
         super();
         this.state = {
-            map: null
-        }
+            isLoading: false,
+            isDrawing: false
+        };
+        this.map = null;
+        this.color = d3Scale.scaleOrdinal(schemeCategory10);
         this.refMap = React.createRef();
+        this.refTrack = React.createRef();
+
     }
     //获取数据
     componentDidMount() {
-        axios.get(WORLD_MAP_URL)
+        axios
+            .get(WORLD_MAP_URL)
             //拿到map数据
             .then(res => {
                 const { data } = res;
@@ -177,7 +183,7 @@ class WorldMap extends Component {
         );
     }
 
-    generateMap(land){
+    generateMap = land => {
         //创建一个投影仪，并指定一个形状
         const projection = geoKavrayskiy7()
             .scale(170)
@@ -189,8 +195,14 @@ class WorldMap extends Component {
         const canvas = d3Select(this.refMap.current)
             .attr("width", width)
             .attr("height", height);
+        const canvas2 = d3Select(this.refTrack.current)
+            .attr("width", width)
+            .attr("height", height);
 
-        let context = canvas.node().getContext("2d");
+
+        const context = canvas.node().getContext("2d");
+        const context2 = canvas2.node().getContext("2d");
+
 
         let path = geoPath()
             .projection(projection)
@@ -217,16 +229,17 @@ class WorldMap extends Component {
             path(graticule.outline());
             context.stroke();
         })
-    }
 
-    render() {
-        return (
-            <div className="map-box">
-                <canvas className="map" ref={this.refMap} />
-            </div>
-        );
-    }
+
+    this.map = {
+        projection: projection,
+        graticule: graticule,
+        context: context,
+        context2: context2
+    };
+};
 }
+
 
 export default WorldMap;
 
